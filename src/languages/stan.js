@@ -1,12 +1,13 @@
 /*
 Language: Stan
 Description: The Stan probabilistic programming language
-Author: Jeffrey B. Arnold <jeffrey.arnold@gmail.com>
+Author: Sean Pinkney <sean.pinkney@gmail.com>
 Website: http://mc-stan.org/
 Category: scientific
 */
 
 export default function(hljs) {
+  const regex = hljs.regex;
   // variable names cannot conflict with block identifiers
   const BLOCKS = [
     'functions',
@@ -29,34 +30,8 @@ export default function(hljs) {
     'return'
   ];
 
-  const SPECIAL_FUNCTIONS = [
-    'print',
-    'reject',
-    'hmm_marginal',
-    'hmm_latent_rng',
-    'hmm_hidden_state_prob',
-    'algebra_solver',
-    'algebra_solver_newton',
-    'map_rect',
-    'reduce_sum',
-    'reduce_sum_static',
-    'ode_rk45', 
-    'ode_rk45_tol', 
-    'ode_ckrk', 
-    'ode_ckrk_tol', 
-    'ode_adams',
-    'ode_adams_tol', 
-    'ode_bdf', 
-    'ode_bdf_tol', 
-    'ode_adjoint_tol_ctl',
-    'integrate_1d',
-    'integrate_ode_rk45', 
-    'integrate_ode', 
-    'integrate_ode_adams',
-    'integrate_ode_bdf'
-  ];
-  const VAR_TYPES = [
-    `array`,
+  const TYPES = [
+    'array',
     'complex',
     'int',
     'real',
@@ -73,199 +48,312 @@ export default function(hljs) {
     'cov_matrix|10',
     'void'
   ];
+
+  // to get the functions list
+  // clone the [stan-docs repo](https://github.com/stan-dev/docs)
+  // then cd into it and run this bash script https://gist.github.com/joshgoebel/dcd33f82d4059a907c986049893843cf
+  //
+  // the output files are
+  // distributions_quoted.txt
+  // functions_quoted.txt
+
   const FUNCTIONS = [
-    // Integer-Valued Basic Functions
-
-    // Absolute functions
-    'abs', 'int_step',
-
-    // Bound functions
-    'min', 'max',
-
-    // Size functions
-    'size',
-
-    // Real-Valued Basic Functions
-
-    // Log probability function
-    'target', 'get_lp',
-
-    // Logical functions
-    'step', 'is_inf', 'is_nan',
-
-    // Step-like functions
-    'fabs', 'fdim', 'fmin', 'fmax', 'fmod', 'floor', 'ceil', 'round',
-    'trunc',
-
-    // Power and logarithm functions
-    'sqrt', 'cbrt', 'square', 'exp', 'exp2', 'log', 'log2', 'log10',
-    'pow', 'inv', 'inv_sqrt', 'inv_square',
-
-    // Trigonometric functions
-    'hypot', 'cos', 'sin', 'tan', 'acos', 'asin', 'atan', 'atan2',
-
-    // Hyperbolic trigonometric functions
-    'cosh', 'sinh', 'tanh', 'acosh', 'asinh', 'atanh',
-
-    // Link functions
-    'logit', 'inv_logit', 'inv_cloglog',
-
-    // Probability-related functions
-    'erf', 'erfc', 'Phi', 'inv_Phi', 'Phi_approx', 'binary_log_loss',
-    'owens_t',
-
-    // Combinatorial functions
-    'beta', 'inc_beta', 'lbeta', 'tgamma', 'lgamma', 'digamma',
-    'trigamma', 'lmgamma', 'gamma_p', 'gamma_q',
-    'binomial_coefficient_log', 'choose', 'bessel_first_kind',
-    'bessel_second_kind', 'modified_bessel_first_kind',
-    'log_modified_bessel_first_kind', 'modified_bessel_second_kind',
-    'falling_factorial', 'lchoose', 'log_falling_factorial',
-    'rising_factorial', 'log_rising_factorial',
-
-    // Composed functions
-    'expm1', 'fma', 'multiply_log', 'ldexp', 'lmultiply', 'log1p',
-    'log1m', 'log1p_exp', 'log1m_exp', 'log_diff_exp', 'log_mix',
-    'log_sum_exp', 'log_inv_logit', 'log_inv_logit_diff',
-    'log1m_inv_logit',
-
-    // Special functions
-    'lambert_w0', 'lambert_wm1',
-
-    // Complex Conversion Functions
-    'get_real', 'get_imag',
-
-    // Complex-Valued Basic Functions
-
-    // Complex Construction Functions
-    'to_complex',
-
-    // Array Operations
-
-    // Reductions
-    'sum', 'prod', 'log_sum_exp', 'mean', 'variance', 'sd', 'distance',
-    'squared_distance', 'quantile',
-
-    // Array size and dimension function
-    'dims', 'num_elements',
-
-    // Array broadcasting
-    'rep_array',
-
-    // Array concatenation
+    'Phi',
+    'Phi_approx',
+    'abs',
+    'acos',
+    'acosh',
+    'add_diag',
+    'algebra_solver',
+    'algebra_solver_newton',
     'append_array',
-
-    // Sorting functions
-    'sort_asc', 'sort_desc', 'sort_indices_asc', 'sort_indices_desc',
-    'rank',
-
-    // Reversing functions
-    'reverse',
-
-    // Matrix Operations
-
-    // Integer-valued matrix size functions
-    'num_elements', 'rows', 'cols',
-
-    // Dot products and specialized products
-    'dot_product', 'columns_dot_product', 'rows_dot_product', 'dot_self',
-    'columns_dot_self', 'rows_dot_self', 'tcrossprod', 'crossprod',
-    'quad_form', 'quad_form_diag', 'quad_form_sym', 'trace_quad_form',
-    'trace_gen_quad_form', 'multiply_lower_tri_self_transpose',
-    'diag_pre_multiply', 'diag_post_multiply',
-
-    // Broadcast functions
-    'rep_vector', 'rep_row_vector', 'rep_matrix',
-    'symmetrize_from_lower_tri',
-
-    // Diagonal matrix functions
-    'add_diag', 'diagonal', 'diag_matrix', 'identity_matrix',
-
-    // Container construction functions
-    'linspaced_array', 'linspaced_int_array', 'linspaced_vector',
-    'linspaced_row_vector', 'one_hot_int_array', 'one_hot_array',
-    'one_hot_vector', 'one_hot_row_vector', 'ones_int_array',
-    'ones_array', 'ones_vector', 'ones_row_vector', 'zeros_int_array',
-    'zeros_array', 'zeros_vector', 'zeros_row_vector', 'uniform_simplex',
-
-    // Slicing and blocking functions
-    'col', 'row', 'block', 'sub_col', 'sub_row', 'head', 'tail',
-    'segment',
-
-    // Matrix concatenation
-    'append_col', 'append_row',
-
-    // Special matrix functions
-    'softmax', 'log_softmax', 'cumulative_sum',
-
-    // Covariance functions
+    'append_col',
+    'append_row',
+    'asin',
+    'asinh',
+    'atan',
+    'atan2',
+    'atanh',
+    'bessel_first_kind',
+    'bessel_second_kind',
+    'binary_log_loss',
+    'binomial_coefficient_log',
+    'block',
+    'cbrt',
+    'ceil',
+    'chol2inv',
+    'cholesky_decompose',
+    'choose',
+    'col',
+    'cols',
+    'columns_dot_product',
+    'columns_dot_self',
+    'conj',
+    'cos',
+    'cosh',
     'cov_exp_quad',
-
-    // Linear algebra functions and solvers
-    'mdivide_left_tri_low', 'mdivide_right_tri_low', 'mdivide_left_spd',
-    'mdivide_right_spd', 'matrix_exp', 'matrix_exp_multiply',
-    'scale_matrix_exp_multiply', 'matrix_power','trace', 'determinant',
-    'log_determinant', 'inverse', 'inverse_spd', 'chol2inv',
-    'generalized_inverse', 'eigenvalues_sym', 'eigenvectors_sym',
-    'qr_thin_Q', 'qr_thin_R', 'qr_Q', 'qr_R', 'cholseky_decompose',
-    'singular_values', 'svd_U', 'svd_V',
-
-    // Sparse Matrix Operations
-
-    // Conversion functions
-    'csr_extract_w', 'csr_extract_v', 'csr_extract_u',
-    'csr_to_dense_matrix',
-
-    // Sparse matrix arithmetic
+    'crossprod',
+    'csr_extract_u',
+    'csr_extract_v',
+    'csr_extract_w',
     'csr_matrix_times_vector',
-
-    // Mixed Operations
-    'to_matrix', 'to_vector', 'to_row_vector', 'to_array_2d',
+    'csr_to_dense_matrix',
+    'cumulative_sum',
+    'determinant',
+    'diag_matrix',
+    'diag_post_multiply',
+    'diag_pre_multiply',
+    'diagonal',
+    'digamma',
+    'dims',
+    'distance',
+    'dot_product',
+    'dot_self',
+    'eigenvalues_sym',
+    'eigenvectors_sym',
+    'erf',
+    'erfc',
+    'exp',
+    'exp2',
+    'expm1',
+    'fabs',
+    'falling_factorial',
+    'fdim',
+    'floor',
+    'fma',
+    'fmax',
+    'fmin',
+    'fmod',
+    'gamma_p',
+    'gamma_q',
+    'generalized_inverse',
+    'get_imag',
+    'get_lp',
+    'get_real',
+    'head',
+    'hmm_hidden_state_prob',
+    'hmm_marginal',
+    'hypot',
+    'identity_matrix',
+    'inc_beta',
+    'int_step',
+    'integrate_1d',
+    'integrate_ode',
+    'integrate_ode_adams',
+    'integrate_ode_bdf',
+    'integrate_ode_rk45',
+    'inv',
+    'inv_Phi',
+    'inv_cloglog',
+    'inv_logit',
+    'inv_sqrt',
+    'inv_square',
+    'inverse',
+    'inverse_spd',
+    'is_inf',
+    'is_nan',
+    'lambert_w0',
+    'lambert_wm1',
+    'lbeta',
+    'lchoose',
+    'ldexp',
+    'lgamma',
+    'linspaced_array',
+    'linspaced_int_array',
+    'linspaced_row_vector',
+    'linspaced_vector',
+    'lmgamma',
+    'lmultiply',
+    'log',
+    'log1m',
+    'log1m_exp',
+    'log1m_inv_logit',
+    'log1p',
+    'log1p_exp',
+    'log_determinant',
+    'log_diff_exp',
+    'log_falling_factorial',
+    'log_inv_logit',
+    'log_inv_logit_diff',
+    'log_mix',
+    'log_modified_bessel_first_kind',
+    'log_rising_factorial',
+    'log_softmax',
+    'log_sum_exp',
+    'logit',
+    'machine_precision',
+    'map_rect',
+    'matrix_exp',
+    'matrix_exp_multiply',
+    'matrix_power',
+    'max',
+    'mdivide_left_spd',
+    'mdivide_left_tri_low',
+    'mdivide_right_spd',
+    'mdivide_right_tri_low',
+    'mean',
+    'min',
+    'modified_bessel_first_kind',
+    'modified_bessel_second_kind',
+    'multiply_log',
+    'multiply_lower_tri_self_transpose',
+    'negative_infinity',
+    'norm',
+    'not_a_number',
+    'num_elements',
+    'ode_adams',
+    'ode_adams_tol',
+    'ode_adjoint_tol_ctl',
+    'ode_bdf',
+    'ode_bdf_tol',
+    'ode_ckrk',
+    'ode_ckrk_tol',
+    'ode_rk45',
+    'ode_rk45_tol',
+    'one_hot_array',
+    'one_hot_int_array',
+    'one_hot_row_vector',
+    'one_hot_vector',
+    'ones_array',
+    'ones_int_array',
+    'ones_row_vector',
+    'ones_vector',
+    'owens_t',
+    'polar',
+    'positive_infinity',
+    'pow',
+    'print',
+    'prod',
+    'proj',
+    'qr_Q',
+    'qr_R',
+    'qr_thin_Q',
+    'qr_thin_R',
+    'quad_form',
+    'quad_form_diag',
+    'quad_form_sym',
+    'quantile',
+    'rank',
+    'reduce_sum',
+    'reject',
+    'rep_array',
+    'rep_matrix',
+    'rep_row_vector',
+    'rep_vector',
+    'reverse',
+    'rising_factorial',
+    'round',
+    'row',
+    'rows',
+    'rows_dot_product',
+    'rows_dot_self',
+    'scale_matrix_exp_multiply',
+    'sd',
+    'segment',
+    'sin',
+    'singular_values',
+    'sinh',
+    'size',
+    'softmax',
+    'sort_asc',
+    'sort_desc',
+    'sort_indices_asc',
+    'sort_indices_desc',
+    'sqrt',
+    'square',
+    'squared_distance',
+    'step',
+    'sub_col',
+    'sub_row',
+    'sum',
+    'svd_U',
+    'svd_V',
+    'symmetrize_from_lower_tri',
+    'tail',
+    'tan',
+    'tanh',
+    'target',
+    'tcrossprod',
+    'tgamma',
     'to_array_1d',
-
-    // Special values
-    'not_a_number', 'positive_infinity', 'negative_infinity',
-    'machine_precision'
-
+    'to_array_2d',
+    'to_complex',
+    'to_matrix',
+    'to_row_vector',
+    'to_vector',
+    'trace',
+    'trace_gen_quad_form',
+    'trace_quad_form',
+    'trigamma',
+    'trunc',
+    'uniform_simplex',
+    'variance',
+    'zeros_array',
+    'zeros_int_array',
+    'zeros_row_vector'
   ];
+
   const DISTRIBUTIONS = [
-    // Discrete Distributions
-
-    // Binary Distributions
-    'bernoulli', 'bernoulli_logit', 'bernoulli_logit_glm',
-
-    // Bounded Discrete Distributions
-    'binomial', 'binomial_logit', 'beta_binomial', 'hypergeometric',
-    'categorical', 'categorical_logit_glm', 'discrete_range',
-    'ordered_logistic', 'ordered_logistic_glm', 'ordered_probit',
-
-    // Unbounded Discrete Distributions
-    'neg_binomial', 'neg_binomial_2', 'neg_binomial_2_log',
-    'neg_binomial_2_log_glm', 'poisson', 'poisson_log',
+    'bernoulli',
+    'bernoulli_logit',
+    'bernoulli_logit_glm',
+    'beta',
+    'beta_binomial',
+    'beta_proportion',
+    'binomial',
+    'binomial_logit',
+    'categorical',
+    'categorical_logit',
+    'categorical_logit_glm',
+    'cauchy',
+    'chi_square',
+    'dirichlet',
+    'discrete_range',
+    'double_exponential',
+    'exp_mod_normal',
+    'exponential',
+    'frechet',
+    'gamma',
+    'gaussian_dlm_obs',
+    'gumbel',
+    'hmm_latent',
+    'hypergeometric',
+    'inv_chi_square',
+    'inv_gamma',
+    'inv_wishart',
+    'lkj_corr',
+    'lkj_corr_cholesky',
+    'logistic',
+    'lognormal',
+    'multi_gp',
+    'multi_gp_cholesky',
+    'multi_normal',
+    'multi_normal_cholesky',
+    'multi_normal_prec',
+    'multi_student_t',
+    'multinomial',
+    'multinomial_logit',
+    'neg_binomial',
+    'neg_binomial_2',
+    'neg_binomial_2_log',
+    'neg_binomial_2_log_glm',
+    'normal',
+    'normal_id_glm',
+    'ordered_logistic',
+    'ordered_logistic_glm',
+    'ordered_probit',
+    'pareto',
+    'pareto_type_2',
+    'poisson',
+    'poisson_log',
     'poisson_log_glm',
-
-    // Multivariate Discrete Distributions
-    'multinomial', 'multinomial_logit',
-
-    // Continuous Distributions
-
-    // Unbounded Continuous Distributions
-    'normal', 'std_normal', 'normal_id_glm', 'exp_mod_normal',
-    'skew_normal', 'student_t', 'cauchy', 'double_exponential',
-    'logistic', 'gumbel', 'skew_double_exponential',
-
-    // Positive Continuous Distributions
-    'lognormal', 'chi_square', 'inv_chi_square',
-    'scaled_inv_chi_square', 'exponential', 'gamma', 'inv_gamma',
-    'weibull', 'frechet', 'rayleigh',
-
-    // Positive Lower-Bounded Distributions
-    'pareto', 'pareto_type_2', 'wiener',
-
-    // Continuous Distributions on [0, 1]
-    'beta', 'beta_proportion',
-
-    // Circular Distributions
+    'rayleigh',
+    'scaled_inv_chi_square',
+    'skew_double_exponential',
+    'skew_normal',
+    'std_normal',
+    'student_t',
+    'uniform',
     'von_mises',
 
     // Bounded Continuous Distributions
@@ -316,7 +404,7 @@ export default function(hljs) {
       relevance: 0,
       contains: [
         {
-          className: 'doctag',
+          scope: 'doctag',
           match: /@(return|param)/
         }
       ]
@@ -324,19 +412,24 @@ export default function(hljs) {
   );
 
   const INCLUDE = {
-    className: 'meta',
-    begin: /#\s*[a-z]+\b/,
+    scope: 'meta',
+    begin: /#include\b/,
     end: /$/,
-    relevance: 0, // relevance comes from keywords
-    keywords: '#include',
     contains: [
       {
-        match: /[a-z][a-z-.]+/,
-        className: 'string'
+        match: /[a-z][a-z-._]+/,
+        scope: 'string'
       },
       hljs.C_LINE_COMMENT_MODE
     ]
   };
+
+  const RANGE_CONSTRAINTS = [
+    "lower",
+    "upper",
+    "offset",
+    "multiplier"
+  ];
 
   return {
     name: 'Stan',
@@ -344,9 +437,9 @@ export default function(hljs) {
     keywords: {
       $pattern: hljs.IDENT_RE,
       title: BLOCKS,
-      keyword: STATEMENTS.concat(VAR_TYPES).concat(SPECIAL_FUNCTIONS),
-      built_in: FUNCTIONS.concat(DISTRIBUTIONS).concat(expanded),
-      punctuation: DELIMIT
+      type: TYPES,
+      keyword: STATEMENTS,
+      built_in: FUNCTIONS
     },
     contains: [
       hljs.C_LINE_COMMENT_MODE,
@@ -370,50 +463,81 @@ export default function(hljs) {
       relevance: 0
      },
       {
-        // hack: in range constraints, lower must follow either , or <
-        // <upper = ..., lower = ...> or <lower = ...>
-        begin: /[<,]\s*lower\s*=/,
-        keywords: 'lower'
+        scope: 'built_in',
+        match: /\s(pi|e|sqrt2|log2|log10)(?=\()/,
+        relevance: 0
       },
       {
-        // hack: in range constraints, upper must follow either , or <
-        // <lower = ..., upper = ...> or <upper = ...>
-        begin: /[<,]\s*upper\s*=/,
-        keywords: 'upper'
+        match: regex.concat(/[<,]\s*/, regex.either(...RANGE_CONSTRAINTS), /\s*=/),
+        keywords: RANGE_CONSTRAINTS
       },
       {
-        // hack: in range constraints, upper must follow either , or <
-        // <multiplier = ..., offest = ...> or <offset = ...>
-        begin: /[<,]\s*offset\s*=/,
-        keywords: 'offset'
+        scope: 'keyword',
+        match: /\btarget(?=\s*\+=)/,
       },
       {
-        // hack: in range constraints, upper must follow either , or <
-        // <offset = ..., multiplier = ...> or <multiplier = ...>
-        begin: /[<,]\s*multiplier\s*=/,
-        keywords: 'multiplier'
-      },
-      {
-        className: 'keyword',
-        begin: /\btarget\s*/,
-      },
-      {
-        className: 'number',
-        variants: [
-          {
-            begin: /(?:\b\d+(?:_\d+)*(?:\.(?:\d+(?:_\d+)*)?)?|\B\.\d+(?:_\d+)*)(?:[eE][+-]?\d+(?:_\d+)*)?i?(?!\w)/i
-          },
-          {
-            begin: /\.\d+(?:[eE][+-]?\d+)?\b/
-          }
+        // highlights the 'T' in T[,] for only Stan language distributrions
+        match: [
+          /~\s*/,
+          regex.either(...DISTRIBUTIONS),
+          /(?:\(\))/,
+          /\s*T(?=\s*\[)/
         ],
+        scope: {
+          2: "built_in",
+          4: "keyword"
+        }
+      },
+      {
+        // highlights distributions that end with special endings
+        scope: 'built_in',
+        keywords: DISTRIBUTIONS,
+        begin: regex.concat(/\w*/, regex.either(...DISTRIBUTIONS), /(_lpdf|_lupdf|_lpmf|_cdf|_lcdf|_lccdf|_qf)(?=\s*[\(.*\)])/)
+      },
+      {
+        // highlights distributions after ~
+        begin: [
+          /~/,
+          /\s*/,
+          regex.concat(regex.either(...DISTRIBUTIONS), /(?=\s*[\(.*\)])/)
+        ],
+        scope: { 3: "built_in" }
+      },
+      {
+        // highlights user defined distributions after ~
+        begin: [
+          /~/,
+          /\s*\w+(?=\s*[\(.*\)])/,
+          '(?!.*/\b(' + regex.either(...DISTRIBUTIONS) + ')\b)'
+        ],
+        scope: { 2: "title.function" }
+      },
+      {
+        // highlights user defined distributions with special endings
+        scope: 'title.function',
+        begin: /\w*(_lpdf|_lupdf|_lpmf|_cdf|_lcdf|_lccdf|_qf)(?=\s*[\(.*\)])/
+      },
+      {
+        scope: 'number',
+        match: regex.concat(
+          // Comes from @RunDevelopment accessed 11/29/2021 at
+          // https://github.com/PrismJS/prism/blob/c53ad2e65b7193ab4f03a1797506a54bbb33d5a2/components/prism-stan.js#L56
+
+          // start of big noncapture group which
+          // 1. gets numbers that are by themselves
+          // 2. numbers that are separated by _
+          // 3. numbers that are separted by .
+          /(?:\b\d+(?:_\d+)*(?:\.(?:\d+(?:_\d+)*)?)?|\B\.\d+(?:_\d+)*)/,
+          // grabs scientific notation
+          // grabs complex numbers with i
+          /(?:[eE][+-]?\d+(?:_\d+)*)?i?(?!\w)/
+        ),
         relevance: 0
       },
       {
-        className: 'string',
-        begin: '"',
-        end: '"',
-        relevance: 0
+        scope: 'string',
+        begin: /"/,
+        end: /"/
       }
     ]
   };
