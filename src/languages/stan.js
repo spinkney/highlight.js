@@ -394,6 +394,12 @@ export default function(hljs) {
     "multiplier"
   ];
 
+  const OPERATOR = {
+    className: "operator",
+    begin: /\.(?=[*/=^])|[-+*/=%^~:?]|&&?|\\|\|\|?|!=?|[<>]/,
+    relevance: 0,
+  };
+
   return {
     name: 'Stan',
     aliases: [ 'stanfuncs' ],
